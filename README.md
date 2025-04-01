@@ -241,14 +241,16 @@ This project is licensed under the terms of the [MIT License](https://github.com
 ## SP development notes 
 if this is your first time developing on data-diff, run the following command to install the dependencies:
 ```poetry install
--- add the local data-diff package for development 
-poetry add --editable ./data_diff/
 ```
 
 
-to run the local version of data-diff, run the following command:
+make updates and run the local version of data-diff: 
 n.b. make sure to update datadiff.toml with the correct run name and source/target database information
-```poetry run data-diff --conf datadiff.toml --run <YOUR_RUN_NAME> -k <PRIMARY_KEY_COLUMN> -c <COLUMNS_TO_COMPARE>```
+```
+-- will activate the local data-diff environment 
+poetry shell 
+-- sample command
+poetry run data-diff --conf datadiff.toml --run <YOUR_RUN_NAME> -k <PRIMARY_KEY_COLUMN> -c <COLUMNS_TO_COMPARE>```
 
 
 

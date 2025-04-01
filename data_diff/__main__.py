@@ -8,6 +8,8 @@ from datetime import datetime
 from itertools import islice
 from typing import Dict, Optional, Tuple, Union, List, Set
 import trace
+import cProfile
+import pstats
 import click
 import rich
 from rich.logging import RichHandler
@@ -33,6 +35,45 @@ COLOR_SCHEME = {
 }
 
 set_entrypoint_name(os.getenv("DATAFOLD_TRIGGERED_BY", "CLI"))
+
+import linecache
+import inspect
+from datetime import datetime
+
+
+call_depth = 0
+
+
+def enhanced_trace_calls(frame, event, arg):
+    global call_depth
+
+    if event not in ("call", "return"):
+        return enhanced_trace_calls
+
+    filename = frame.f_code.co_filename
+
+    # Only trace data_diff package
+    if "data_diff" not in filename:
+        return enhanced_trace_calls
+
+    func_name = frame.f_code.co_name
+    lineno = frame.f_lineno
+
+    if event == "call":
+        # Get function arguments
+        args = inspect.getargvalues(frame)
+        args_str = ", ".join(f"{arg}={args.locals.get(arg)}" for arg in args.args if arg != "self")
+
+        timestamp = datetime.now().strftime("%H:%M:%S.%f")
+        print(f"{timestamp} {'  ' * call_depth}→ {func_name}({args_str}) at {filename}:{lineno}")
+        call_depth += 1
+
+    elif event == "return":
+        call_depth -= 1
+        timestamp = datetime.now().strftime("%H:%M:%S.%f")
+        print(f"{timestamp} {'  ' * call_depth}← {func_name} returned {arg}")
+
+    return enhanced_trace_calls
 
 
 def _get_log_handlers(is_dbt: Optional[bool] = False) -> Dict[str, logging.Handler]:
@@ -614,7 +655,21 @@ def _data_diff(
     logging.info(f"Duration: {end-start:.2f} seconds.")
 
 
+def run_with_trace():
+    sys.settrace(enhanced_trace_calls)
+    try:
+        main()  # Call normally, Click will pick up sys.argv
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        sys.settrace(None)  # Important! Turn off tracing when done
+        sys.stdout.flush()
+        sys.stderr.flush()
+
+
 if __name__ == "__main__":
-    tracer = trace.Trace(trace=1, count=0)
-    tracer.runfunc(main)
+    run_with_trace()
+else:
+    # This ensures the trace is set up even when run through poetry
+    run_with_trace()
     # main()
