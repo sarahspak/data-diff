@@ -7,7 +7,7 @@ from copy import deepcopy
 from datetime import datetime
 from itertools import islice
 from typing import Dict, Optional, Tuple, Union, List, Set
-
+import trace
 import click
 import rich
 from rich.logging import RichHandler
@@ -615,4 +615,6 @@ def _data_diff(
 
 
 if __name__ == "__main__":
-    main()
+    tracer = trace.Trace(trace=1, count=0)
+    tracer.runfunc(main)
+    # main()

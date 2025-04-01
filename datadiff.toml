@@ -1,0 +1,54 @@
+## DATABASE CONNECTION ##
+[database.duckdb_connection]
+  driver = "duckdb"
+  # filepath = "datafold_demo.duckdb" # local duckdb file example
+  # filepath = "md:" # default motherduck connection example
+  filepath = "md:datafold_demo?motherduck_token=${motherduck_token}" # API token recommended for motherduck connection
+
+[database.snowflake_connection]
+  driver = "snowflake"
+  database = "DEV"
+  user = "sung"
+  password = "${SNOWFLAKE_PASSWORD}" # or "<PASSWORD_STRING>"
+  # the info below is only required for snowflake
+  account = "${ACCOUNT}" # by33919
+  schema = "DEVELOPMENT"
+  warehouse = "DEMO"
+  role = "DEMO_ROLE"
+
+[database.redshift_connection_1]
+  driver = "redshift"
+  database = "disco_cast_prod"
+  user = "sarah"
+  password = "${REDSHIFT_PASSWORD}"
+  host = "localhost"
+  port = 5439
+
+## RUN PARAMETERS ##
+[run.default]
+  verbose = true
+
+## EXAMPLE DATA DIFF JOB ##
+[run.demo_xdb_diff]
+  # Source 1 ("left")
+  1.database = "duckdb_connection"
+  1.table = "development.raw_orders"
+
+  # Source 2 ("right")
+  2.database = "snowflake_connection"
+  2.table = "RAW_ORDERS" # note that snowflake table names are case-sensitive
+
+  verbose = false
+
+[run.redshift_demo_diff]
+  # Source 1 ("left")
+  1.database = "redshift_connection_1"
+  1.table = "disco_cast_prod.fan_artist_counts"
+
+  # Source 2 ("right")
+  2.database = "redshift_connection_1"
+  2.table = "disco_cast_prod.fan_artist_counts1" 
+
+  verbose = false
+
+
